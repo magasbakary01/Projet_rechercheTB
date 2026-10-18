@@ -4,7 +4,7 @@ rp_build_call_args <- function(input) {
   strata <- rp_collect_strata(input)
   method <- input$method
   if (identical(method, "minimization")) {
-    stop("\u8BF7\u5728\u201C\u6700\u5C0F\u5316\u6CD5\u52A8\u6001\u968F\u673A\u5316\u201D\u9875\u9762\u4F7F\u7528\u9010\u4F8B\u52A8\u6001\u968F\u673A\u5316\u3002", call. = FALSE)
+    stop("Pour la minimisation, utilisez l'attribution au fil des inclusions de la page \u00AB Minimisation (randomisation dynamique) \u00BB.", call. = FALSE)
   }
   center_var <- input$center_var
   if (is.null(center_var) || !nzchar(center_var) || identical(center_var, "<none>")) center_var <- NULL
@@ -67,13 +67,13 @@ rp_group_n_from_ratio <- function(n_total, ratio) {
 
 rp_app_pages <- function() {
   c(
-    project = "\u9879\u76EE\u4FE1\u606F",
-    interventions = "\u5E72\u9884\u7EC4\u8BBE\u7F6E",
-    randomization = "\u968F\u673A\u5316\u8BBE\u8BA1",
-    outputs = "\u8F93\u51FA\u8BBE\u7F6E",
-    results = "\u751F\u6210\u4E0E\u9884\u89C8",
-    downloads = "\u6587\u4EF6\u4E0B\u8F7D",
-    audit = "\u5BA1\u8BA1\u4E0E\u590D\u73B0"
+    project = "Informations sur l'\u00E9tude",
+    interventions = "Bras de traitement",
+    randomization = "Plan de randomisation",
+    outputs = "Fichiers de sortie",
+    results = "G\u00E9n\u00E9ration et aper\u00E7u",
+    downloads = "T\u00E9l\u00E9chargements",
+    audit = "Audit et reproductibilit\u00E9"
   )
 }
 
@@ -140,9 +140,9 @@ rp_app_server <- function(input, output, session) {
 
   output$sample_size_hint <- shiny::renderUI({
     if (identical(input$sample_input_mode, "n_per_group")) {
-      shiny::tags$div(class = "rp-muted rp-inline-note", "\u5F53\u524D\u6A21\u5F0F\u4E0B\uFF0C\u603B\u6837\u672C\u91CF\u5C06\u6309\u5404\u7EC4\u6837\u672C\u91CF\u4E4B\u548C\u81EA\u52A8\u66F4\u65B0\u3002")
+      shiny::tags$div(class = "rp-muted rp-inline-note", "Dans ce mode, l'effectif total est mis \u00E0 jour automatiquement (somme des effectifs des groupes).")
     } else {
-      shiny::tags$div(class = "rp-muted rp-inline-note", "\u5F53\u524D\u6A21\u5F0F\u4E0B\uFF0C\u5404\u7EC4\u6837\u672C\u91CF\u6309\u603B\u6837\u672C\u91CF\u548C\u5206\u914D\u6BD4\u4F8B\u81EA\u52A8\u8BA1\u7B97\uFF08\u6700\u5927\u4F59\u6570\u6CD5\uFF09\u3002")
+      shiny::tags$div(class = "rp-muted rp-inline-note", "Dans ce mode, l'effectif de chaque groupe est calcul\u00E9 automatiquement \u00E0 partir de l'effectif total et du ratio d'allocation (m\u00E9thode du plus fort reste).")
     }
   })
 
@@ -181,15 +181,15 @@ rp_app_server <- function(input, output, session) {
   output$center_var_ui <- shiny::renderUI({
     strata <- rp_collect_strata(input)
     choices <- c("<none>", names(strata))
-    shiny::selectInput("center_var", "\u5206\u5C42\u53D8\u91CF", choices = choices, selected = if ("center" %in% choices) "center" else "<none>")
+    shiny::selectInput("center_var", "Variable d\u00E9signant le centre", choices = stats::setNames(choices, c("(aucune)", names(strata))), selected = if ("center" %in% choices) "center" else "<none>")
   })
 
   output$strata_preview <- shiny::renderUI({
     strata <- rp_collect_strata(input)
     if (is.null(strata)) {
       return(rp_info_grid(
-        rp_stat_line("\u5206\u5C42\u7EC4\u5408\u6570", "0"),
-        rp_stat_line("\u72B6\u6001", "\u672A\u542F\u7528\u5206\u5C42")
+        rp_stat_line("Nombre de strates", "0"),
+        rp_stat_line("Statut", "Stratification non activ\u00E9e")
       ))
     }
     n_combo <- prod(lengths(strata))
@@ -197,55 +197,55 @@ rp_app_server <- function(input, output, session) {
       sum(vapply(seq_len(input$group_count), function(i) input[[paste0("n_group_", i)]], numeric(1)))
     }
     per <- if (n_combo > 0) floor(n_total / n_combo) else NA_integer_
-    risk <- if (n_combo > max(1, n_total / 2)) "\u98CE\u9669\u63D0\u793A\uFF1A\u5206\u5C42\u7EC4\u5408\u6570\u76F8\u5BF9\u6837\u672C\u91CF\u8FC7\u591A\uFF0C\u5EFA\u8BAE\u51CF\u5C11\u5206\u5C42\u56E0\u7D20\u6216\u8C03\u6574\u968F\u673A\u5316\u8BBE\u8BA1\u3002" else "\u5206\u5C42\u7EC4\u5408\u6570\u5904\u4E8E\u53EF\u63A5\u53D7\u8303\u56F4\u3002"
+    risk <- if (n_combo > max(1, n_total / 2)) "Attention : le nombre de strates est trop \u00E9lev\u00E9 par rapport \u00E0 l'effectif. R\u00E9duisez le nombre de facteurs de stratification ou modifiez le plan de randomisation." else "Le nombre de strates est acceptable."
     rp_info_grid(
-      rp_stat_line("\u5206\u5C42\u7EC4\u5408\u6570", n_combo),
-      rp_stat_line("\u6BCF\u5C42\u9884\u8BA1\u6837\u672C\u91CF\u7EA6", per),
-      rp_stat_line("\u8BC4\u4F30", risk)
+      rp_stat_line("Nombre de strates", n_combo),
+      rp_stat_line("Effectif attendu par strate (environ)", per),
+      rp_stat_line("\u00C9valuation", risk)
     )
   })
 
   output$parameter_summary <- shiny::renderUI({
     args <- tryCatch(rp_build_call_args(input), error = function(e) e)
     if (inherits(args, "error")) {
-      return(shiny::tags$div(class = "rp-muted", paste("\u53C2\u6570\u5C1A\u672A\u5B8C\u6574\uFF1A", args$message)))
+      return(shiny::tags$div(class = "rp-muted", paste("Param\u00E8tres incomplets :", args$message)))
     }
     rp_info_grid(
-      rp_stat_line("\u9879\u76EE\u540D\u79F0", args$project_name),
-      rp_stat_line("\u65B9\u6848\u7F16\u53F7", args$protocol_no),
-      rp_stat_line("\u7533\u529E\u5355\u4F4D", args$sponsor_name),
-      rp_stat_line("\u968F\u673A\u5316\u65B9\u6CD5", args$method),
-      rp_stat_line("\u968F\u673A\u79CD\u5B50", args$seed),
-      rp_stat_line("\u5206\u7EC4\u6570", nrow(args$interventions)),
-      rp_stat_line("\u603B\u6837\u672C\u91CF", args$n_total %||% sum(args$n_per_group)),
-      rp_stat_line("\u5206\u5C42\u56E0\u7D20", paste(names(args$strata %||% list()), collapse = ", ")),
-      rp_stat_line("\u751F\u6210\u968F\u673A\u4FE1\u5C01", if (isTRUE(args$generate_random_envelope)) "\u662F" else "\u5426"),
-      rp_stat_line("\u751F\u6210\u5E94\u6025\u7834\u76F2\u4FE1\u5C01", if (isTRUE(args$generate_emergency_envelope)) "\u662F" else "\u5426")
+      rp_stat_line("Nom de l'\u00E9tude", args$project_name),
+      rp_stat_line("Num\u00E9ro de protocole", args$protocol_no),
+      rp_stat_line("Promoteur", args$sponsor_name),
+      rp_stat_line("M\u00E9thode de randomisation", args$method),
+      rp_stat_line("Graine al\u00E9atoire", args$seed),
+      rp_stat_line("Nombre de groupes", nrow(args$interventions)),
+      rp_stat_line("Effectif total", args$n_total %||% sum(args$n_per_group)),
+      rp_stat_line("Facteurs de stratification", paste(names(args$strata %||% list()), collapse = ", ")),
+      rp_stat_line("Enveloppes de randomisation", if (isTRUE(args$generate_random_envelope)) "Oui" else "Non"),
+      rp_stat_line("Enveloppes d'urgence", if (isTRUE(args$generate_emergency_envelope)) "Oui" else "Non")
     )
   })
 
   shiny::observeEvent(input$generate, {
     last_error(NULL)
-    shiny::withProgress(message = "\u6B63\u5728\u751F\u6210\u968F\u673A\u5316\u7ED3\u679C", value = 0, {
-      shiny::incProgress(0.2, detail = "\u6821\u9A8C\u53C2\u6570")
+    shiny::withProgress(message = "Randomisation en cours", value = 0, {
+      shiny::incProgress(0.2, detail = "V\u00E9rification des param\u00E8tres")
       args <- tryCatch(rp_build_call_args(input), error = function(e) e)
       if (inherits(args, "error")) {
         last_error(args$message)
         return(NULL)
       }
-      shiny::incProgress(0.4, detail = "\u6267\u884C\u968F\u673A\u5316")
+      shiny::incProgress(0.4, detail = "Tirage de la randomisation")
       res <- tryCatch(do.call(rp_randomize, args), error = function(e) e)
       if (inherits(res, "error")) {
         last_error(res$message)
         return(NULL)
       }
-      shiny::incProgress(0.3, detail = "\u6574\u7406\u8F93\u51FA")
+      shiny::incProgress(0.3, detail = "Pr\u00E9paration des fichiers de sortie")
       result(res)
       shiny::showModal(shiny::modalDialog(
-        title = "\u968F\u673A\u5316\u5DF2\u5B8C\u6210",
-        "\u968F\u673A\u5316\u7ED3\u679C\u53CA\u8F93\u51FA\u6587\u4EF6\u5DF2\u751F\u6210\u3002\u8BF7\u5728\u201C\u751F\u6210\u4E0E\u9884\u89C8\u201D\u9875\u9762\u6838\u5BF9\u7ED3\u679C\uFF0C\u5E76\u5728\u201C\u6587\u4EF6\u4E0B\u8F7D\u201D\u9875\u9762\u4E0B\u8F7D\u5F52\u6863\u6587\u4EF6\u3002",
+        title = "Randomisation termin\u00E9e",
+        "Les r\u00E9sultats de la randomisation et les fichiers de sortie ont \u00E9t\u00E9 g\u00E9n\u00E9r\u00E9s. V\u00E9rifiez les r\u00E9sultats dans la page \u00AB G\u00E9n\u00E9ration et aper\u00E7u \u00BB, puis t\u00E9l\u00E9chargez les fichiers \u00E0 archiver dans la page \u00AB T\u00E9l\u00E9chargements \u00BB.",
         easyClose = TRUE,
-        footer = shiny::modalButton("\u786E\u5B9A")
+        footer = shiny::modalButton("OK")
       ))
       session$sendCustomMessage("rp-show-page", "results")
       shiny::incProgress(0.1)
@@ -254,10 +254,10 @@ rp_app_server <- function(input, output, session) {
 
   output$generation_status <- shiny::renderUI({
     if (!is.null(last_error())) {
-      return(shiny::tags$div(class = "rp-error", paste("\u751F\u6210\u5931\u8D25\uFF1A", last_error())))
+      return(shiny::tags$div(class = "rp-error", paste("\u00C9chec de la g\u00E9n\u00E9ration :", last_error())))
     }
-    if (is.null(result())) return(shiny::tags$div(class = "rp-muted", "\u5C1A\u672A\u751F\u6210\u968F\u673A\u5316\u7ED3\u679C\u3002"))
-    shiny::tags$div(class = "rp-ok", "\u968F\u673A\u5316\u7ED3\u679C\u5DF2\u751F\u6210\u3002")
+    if (is.null(result())) return(shiny::tags$div(class = "rp-muted", "Aucun r\u00E9sultat de randomisation pour le moment."))
+    shiny::tags$div(class = "rp-ok", "Les r\u00E9sultats de la randomisation ont \u00E9t\u00E9 g\u00E9n\u00E9r\u00E9s.")
   })
 
   output$blinded_table <- DT::renderDT({
@@ -290,18 +290,18 @@ rp_app_server <- function(input, output, session) {
   output$runtime_info <- shiny::renderUI({
     res <- result()
     rp_info_grid(
-      rp_stat_line("R \u7248\u672C", R.version.string),
-      rp_stat_line("randomPlatform \u7248\u672C", "V1.0"),
-      rp_stat_line("RNG \u8BBE\u7F6E", paste(RNGkind(), collapse = " / ")),
-      rp_stat_line("\u968F\u673A\u79CD\u5B50", input$seed %||% if (is.null(res)) "" else res$design$seed),
-      rp_stat_line("\u751F\u6210\u65F6\u95F4", format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
+      rp_stat_line("Version de R", R.version.string),
+      rp_stat_line("Version de randomPlatform", "V1.0"),
+      rp_stat_line("G\u00E9n\u00E9rateur al\u00E9atoire (RNG)", paste(RNGkind(), collapse = " / ")),
+      rp_stat_line("Graine al\u00E9atoire", input$seed %||% if (is.null(res)) "" else res$design$seed),
+      rp_stat_line("Date et heure", format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
     )
   })
 
   output$audit_preview <- shiny::renderText({
     shiny::req(result())
     path <- file.path(result()$design$output_dir %||% dirname(result()$files$blinded_site_table), "audit_log.jsonl")
-    if (!file.exists(path)) return("\u6682\u65E0\u5BA1\u8BA1\u65E5\u5FD7\u3002")
+    if (!file.exists(path)) return("Aucun journal d'audit disponible.")
     paste(utils::tail(readLines(path, warn = FALSE), 20), collapse = "\n")
   })
 
@@ -312,7 +312,7 @@ rp_app_server <- function(input, output, session) {
     repro_dir <- result()$files$reproducibility_dir
     script_path <- file.path(repro_dir, "reproduce_randomization.R")
     if (is.null(repro_dir) || !dir.exists(repro_dir) || !file.exists(script_path)) {
-      output$verify_result <- shiny::renderText("当前结果未生成复现包，无法执行复现校验。")
+      output$verify_result <- shiny::renderText("Aucun dossier de reproductibilit\u00E9 n'a \u00E9t\u00E9 g\u00E9n\u00E9r\u00E9 pour ce r\u00E9sultat : v\u00E9rification impossible.")
       return()
     }
 
@@ -323,12 +323,12 @@ rp_app_server <- function(input, output, session) {
       repro_env <- new.env(parent = baseenv())
       sys.source(script_path, envir = repro_env)
       if (!exists("res", envir = repro_env, inherits = FALSE)) {
-        stop("复现脚本未生成对象 res。", call. = FALSE)
+        stop("Le script de reproduction n'a pas cr\u00E9\u00E9 l'objet res.", call. = FALSE)
       }
       repro_res <- get("res", envir = repro_env, inherits = FALSE)
       rp_verify_reproducibility(result()$allocation_table, repro_res$allocation_table)
     }, error = function(e) {
-      list(message = paste0("复现校验失败：", e$message))
+      list(message = paste0("\u00C9chec de la v\u00E9rification de reproductibilit\u00E9 : ", e$message))
     })
 
     output$verify_result <- shiny::renderText(check$message)
@@ -340,7 +340,7 @@ rp_app_server <- function(input, output, session) {
       content = function(file) {
         shiny::req(result())
         if (name %in% c("unblinded_master_table", "emergency_envelope", "reproducibility_dir") && !isTRUE(input$confirm_sensitive_download)) {
-          stop("\u8BF7\u5148\u786E\u8BA4\u5F53\u524D\u64CD\u4F5C\u8005\u6709\u6743\u4E0B\u8F7D\u654F\u611F\u6587\u4EF6\u3002", call. = FALSE)
+          stop("Confirmez d'abord que l'utilisateur actuel est autoris\u00E9 \u00E0 t\u00E9l\u00E9charger les fichiers sensibles.", call. = FALSE)
         }
         if (identical(name, "reproducibility_dir")) {
           paths <- list.files(result()$files$reproducibility_dir, full.names = TRUE, recursive = TRUE)
@@ -369,7 +369,7 @@ rp_app_server <- function(input, output, session) {
     filename = function() paste0("randomPlatform_output_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".zip"),
     content = function(file) {
       shiny::req(result())
-      if (!isTRUE(input$confirm_sensitive_download)) stop("\u8BF7\u5148\u786E\u8BA4\u5F53\u524D\u64CD\u4F5C\u8005\u6709\u6743\u4E0B\u8F7D\u654F\u611F\u6587\u4EF6\u3002", call. = FALSE)
+      if (!isTRUE(input$confirm_sensitive_download)) stop("Confirmez d'abord que l'utilisateur actuel est autoris\u00E9 \u00E0 t\u00E9l\u00E9charger les fichiers sensibles.", call. = FALSE)
       root <- dirname(result()$files$blinded_site_table)
       paths <- list.files(root, full.names = TRUE, recursive = TRUE)
       zip::zipr(file, paths)
@@ -383,7 +383,7 @@ rp_app_server <- function(input, output, session) {
 
   output$min_covariate_inputs <- shiny::renderUI({
     f <- min_factors()
-    shiny::tagList(lapply(f, function(nm) shiny::textInput(paste0("min_cov_", nm), paste0(nm, " \u6C34\u5E73"), value = "")))
+    shiny::tagList(lapply(f, function(nm) shiny::textInput(paste0("min_cov_", nm), paste0(nm, " : modalit\u00E9"), value = "")))
   })
 
   shiny::observeEvent(input$min_start, {
@@ -410,7 +410,7 @@ rp_app_server <- function(input, output, session) {
       shiny::showNotification(sess$message, type = "error")
     } else {
       min_session(sess)
-      shiny::showNotification("\u6700\u5C0F\u5316\u6CD5\u4F1A\u8BDD\u5DF2\u542F\u52A8\u3002", type = "message")
+      shiny::showNotification("Session de minimisation d\u00E9marr\u00E9e.", type = "message")
     }
   })
 

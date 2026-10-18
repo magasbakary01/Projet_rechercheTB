@@ -2,10 +2,11 @@
   wb <- openxlsx::createWorkbook()
   openxlsx::addWorksheet(wb, "Project")
   project <- data.frame(
-    item = c("Project name", "Protocol number", "Sponsor", "Method", "Seed", "Generated at"),
+    item = c("Nom de l'\u00E9tude", "Num\u00E9ro de protocole", "Promoteur", "M\u00E9thode de randomisation", "Graine al\u00E9atoire", "Date de g\u00E9n\u00E9ration"),
     value = c(project_name, protocol_no, sponsor_name, method, seed, format(Sys.time(), "%Y-%m-%d %H:%M:%S")),
     stringsAsFactors = FALSE
   )
+  names(project) <- c("\u00C9l\u00E9ment", "Valeur")
   openxlsx::writeData(wb, "Project", project)
 
   openxlsx::addWorksheet(wb, "Unblinded Master")
@@ -21,23 +22,25 @@
 
   openxlsx::addWorksheet(wb, "Reproducibility")
   repro <- data.frame(
-    item = c("R version", "Platform", "Seed", "RNG kind", "normal.kind", "sample.kind", "Table SHA-256"),
+    item = c("Version de R", "Plateforme", "Graine al\u00E9atoire", "G\u00E9n\u00E9rateur al\u00E9atoire (RNG kind)", "normal.kind", "sample.kind", "Empreinte SHA-256 de la liste"),
     value = c(R.version.string, R.version$platform, seed, rng_kind, normal_kind, sample_kind, .rp_table_hash(allocation_table)),
     stringsAsFactors = FALSE
   )
+  names(repro) <- c("\u00C9l\u00E9ment", "Valeur")
   openxlsx::writeData(wb, "Reproducibility", repro)
   openxlsx::saveWorkbook(wb, file, overwrite = TRUE)
 }
 
-.rp_find_chinese_font <- function() {
-  candidates <- if (identical(.Platform$OS.type, "windows")) {
-    c("Microsoft YaHei", "SimHei", "SimSun", "DengXian", "Arial Unicode MS", "sans")
+.rp_find_pdf_font <- function(cairo = isTRUE(capabilities("cairo"))) {
+  # Latin font able to render French accents; no CJK font is required any more.
+  if (!isTRUE(cairo)) return("Helvetica")
+  if (identical(.Platform$OS.type, "windows")) {
+    "Arial"
   } else if (identical(Sys.info()[["sysname"]], "Darwin")) {
-    c("PingFang SC", "Heiti SC", "Songti SC", "Arial Unicode MS", "sans")
+    "Helvetica"
   } else {
-    c("Noto Sans CJK SC", "WenQuanYi Micro Hei", "Source Han Sans SC", "DejaVu Sans", "sans")
+    "sans"
   }
-  candidates[1]
 }
 
 .rp_write_csv_utf8 <- function(df, file) {
@@ -49,13 +52,13 @@
   close(con)
 }
 
-.rp_bilingual <- function(zh, en) {
-  paste0(zh, "\uFF08", en, "\uFF09")
+.rp_bilingual <- function(fr, en) {
+  paste0(fr, " (", en, ")")
 }
 
 .rp_page_header <- function(title, title_en, envelope_no, accent = "#176f6b") {
-  plot.new()
   par(mar = c(0, 0, 0, 0), xaxs = "i", yaxs = "i")
+  plot.new()
   rect(0, 0, 1, 1, col = "#ffffff", border = NA)
   rect(0.035, 0.86, 0.965, 0.965, col = accent, border = NA)
   title_cex <- if (nchar(title) > 10) 0.92 else 1.20
@@ -80,7 +83,7 @@
     y0 <- y1 - row_h
     rect(x0, y0, label_x1, y1, col = "#eef5f5", border = "#c9d7da")
     rect(label_x1, y0, x1, y1, col = "#fbfdfd", border = "#c9d7da")
-    text(x0 + 0.012, y0 + row_h / 2, .rp_wrap(rows$label[i], 24), adj = c(0, 0.5), cex = label_cex, font = 2, col = accent)
+    text(x0 + 0.012, y0 + row_h / 2, .rp_wrap(rows$label[i], floor(25 / label_cex)), adj = c(0, 0.5), cex = label_cex, font = 2, col = accent)
     text(label_x1 + 0.014, y0 + row_h / 2, .rp_wrap(rows$value[i], 44), adj = c(0, 0.5), cex = value_cex, col = "#172326")
   }
   invisible(y_top - nrow(rows) * row_h)
@@ -130,14 +133,14 @@
 }
 
 .rp_emergency_insert_sensitive_note_lines <- function() {
-  c(.rp_bilingual("本页含明确盲底，仅限紧急破盲时由授权人员查看", "This page contains allocation information and is restricted to authorized emergency unblinding use"))
+  c(.rp_bilingual("Cette page r\u00E9v\u00E8le le traitement attribu\u00E9 : consultation r\u00E9serv\u00E9e \u00E0 une personne autoris\u00E9e, en cas de lev\u00E9e d'aveugle d'urgence", "This page contains allocation information and is restricted to authorized emergency unblinding use"))
 }
 
 .rp_emergency_insert_sensitive_note_spec <- function(y_after, gap = 0.035) {
   lines <- .rp_emergency_insert_sensitive_note_lines()
   line_gap <- 0.022
   paragraph_gap <- 0.003
-  wrap_width <- 84
+  wrap_width <- 115
   height <- max(
     0.11,
     .rp_note_box_required_height(
@@ -149,7 +152,7 @@
   )
 
   list(
-    title = .rp_bilingual("敏感提示", "Sensitive information"),
+    title = .rp_bilingual("Information sensible", "Sensitive information"),
     lines = lines,
     y_top = min(0.24, y_after - gap),
     height = height,
@@ -193,10 +196,10 @@
 .rp_envelope_common_rows <- function(row, project_name, protocol_no, sponsor_name, center_col, stratum_display = NULL) {
   rows <- data.frame(
     label = c(
-      .rp_bilingual("\u9879\u76EE\u540D\u79F0", "Project name"),
-      .rp_bilingual("\u65B9\u6848\u7F16\u53F7", "Protocol number"),
-      .rp_bilingual("\u7533\u529E\u5355\u4F4D\u540D\u79F0", "Sponsor"),
-      .rp_bilingual("\u4FE1\u5C01\u6D41\u6C34\u53F7", "Envelope serial number")
+      .rp_bilingual("Nom de l'\u00E9tude", "Project name"),
+      .rp_bilingual("Num\u00E9ro de protocole", "Protocol number"),
+      .rp_bilingual("Nom du promoteur", "Sponsor"),
+      .rp_bilingual("Num\u00E9ro d'ordre de l'enveloppe", "Envelope serial number")
     ),
     value = c(project_name, protocol_no, sponsor_name, as.character(row$envelope_no)),
     stringsAsFactors = FALSE
@@ -204,28 +207,28 @@
   if (!is.null(center_col)) {
     rows <- rbind(
       rows[seq_len(3), , drop = FALSE],
-      data.frame(label = .rp_bilingual("\u4E2D\u5FC3\u7F16\u53F7/\u673A\u6784\u540D\u79F0", "Center/institution"), value = as.character(row[[center_col]]), stringsAsFactors = FALSE),
+      data.frame(label = .rp_bilingual("Code du centre / \u00E9tablissement", "Center/institution"), value = as.character(row[[center_col]]), stringsAsFactors = FALSE),
       rows[4, , drop = FALSE]
     )
   }
   if (!is.null(stratum_display) && nzchar(stratum_display)) {
     rows <- rbind(
       rows,
-      data.frame(label = .rp_bilingual("\u5206\u5C42\u4FE1\u606F", "Stratification"), value = stratum_display, stringsAsFactors = FALSE)
+      data.frame(label = .rp_bilingual("Strate", "Stratification"), value = stratum_display, stringsAsFactors = FALSE)
     )
   }
   rows
 }
 
 .rp_draw_footer <- function(kind, envelope_no) {
-  text(0.5, 0.025, paste0(kind, " | ", .rp_bilingual("\u6D41\u6C34\u53F7", "Serial"), ": ", envelope_no), cex = 0.58, col = "#607179")
+  text(0.5, 0.025, paste0(kind, " | ", .rp_bilingual("Num\u00E9ro d'ordre", "Serial"), ": ", envelope_no), cex = 0.58, col = "#607179")
 }
 
 .rp_pdf <- function(file, font_family = NULL) {
   page_width <- 210 / 25.4
   page_height <- 148 / 25.4
   if (is.null(font_family) || !nzchar(font_family)) {
-    font_family <- .rp_find_chinese_font()
+    font_family <- .rp_find_pdf_font()
   }
   if (isTRUE(capabilities("cairo"))) {
     grDevices::cairo_pdf(filename = file, width = page_width, height = page_height, family = font_family %||% "sans", onefile = TRUE)
@@ -242,33 +245,34 @@
     row <- allocation[i, , drop = FALSE]
     stratum_display <- .rp_stratum_display(row, strata_cols)
 
-    .rp_page_header("\u968F\u673A\u4FE1\u5C01\u5C01\u9762", "Random Envelope Cover", row$envelope_no)
+    .rp_page_header("Enveloppe de randomisation - couverture", "Random Envelope Cover", row$envelope_no)
     common_rows <- .rp_envelope_common_rows(row, project_name, protocol_no, sponsor_name, center_col, stratum_display)
     y_after <- .rp_draw_kv_table(common_rows, y_top = 0.78, row_h = 0.061)
+    cover_lines <- c(
+      .rp_bilingual("Ouvrir les enveloppes dans l'ordre des inclusions", "Open sequentially according to enrollment order"),
+      .rp_bilingual("V\u00E9rifier l'\u00E9ligibilit\u00E9 du participant avant l'ouverture", "Confirm participant eligibility before opening"),
+      .rp_bilingual("La couverture ne doit indiquer ni le groupe attribu\u00E9 ni la lev\u00E9e de l'aveugle", "This cover must not display allocation or unblinding information")
+    )
     .rp_draw_note_box(
-      .rp_bilingual("\u64CD\u4F5C\u8BF4\u660E", "Instruction"),
-      c(
-        .rp_bilingual("\u6309\u5165\u7EC4\u987A\u5E8F\u4F9D\u6B21\u5F00\u542F", "Open sequentially according to enrollment order"),
-        .rp_bilingual("\u5F00\u542F\u524D\u786E\u8BA4\u53D7\u8BD5\u8005\u7B26\u5408\u5165\u7EC4\u6761\u4EF6", "Confirm participant eligibility before opening"),
-        .rp_bilingual("\u672C\u5C01\u9762\u4E0D\u5F97\u663E\u793A\u5206\u7EC4\u6216\u7834\u76F2\u4FE1\u606F", "This cover must not display allocation or unblinding information")
-      ),
+      .rp_bilingual("Consignes", "Instruction"),
+      cover_lines,
       y_top = min(0.36, y_after - 0.05),
-      height = 0.17,
+      height = max(0.17, .rp_note_box_required_height(cover_lines, line_gap = 0.024, paragraph_gap = 0.003, wrap_width = 118)),
       cex = 0.55,
       title_cex = 0.68,
       line_gap = 0.024,
       paragraph_gap = 0.003,
-      wrap_width = 88
+      wrap_width = 118
     )
-    .rp_draw_footer("Random envelope cover", row$envelope_no)
+    .rp_draw_footer("Enveloppe de randomisation - couverture", row$envelope_no)
 
-    .rp_page_header("\u968F\u673A\u4FE1\u5C01\u5185\u9875", "Random Envelope Insert", row$envelope_no)
+    .rp_page_header("Enveloppe de randomisation - feuillet int\u00E9rieur", "Random Envelope Insert", row$envelope_no)
     insert_rows <- rbind(
       common_rows,
-      data.frame(label = .rp_bilingual("\u836F\u7269\u7F16\u53F7/\u5E72\u9884\u7F16\u53F7", "Drug/intervention code"), value = as.character(row$drug_code), stringsAsFactors = FALSE)
+      data.frame(label = .rp_bilingual("Num\u00E9ro de traitement / d'intervention", "Drug/intervention code"), value = as.character(row$drug_code), stringsAsFactors = FALSE)
     )
     .rp_draw_kv_table(insert_rows, y_top = 0.78, row_h = 0.066, value_cex = 0.86)
-    .rp_draw_footer("Random envelope insert", row$envelope_no)
+    .rp_draw_footer("Enveloppe de randomisation - feuillet int\u00E9rieur", row$envelope_no)
   }
 }
 
@@ -280,13 +284,13 @@
     row <- allocation[i, , drop = FALSE]
     stratum_display <- .rp_stratum_display(row, strata_cols)
 
-    .rp_page_header("\u5E94\u6025\u7834\u76F2\u4FE1\u5C01\u5C01\u9762", "Emergency Unblinding Envelope Cover", row$envelope_no, accent = "#b42318")
+    .rp_page_header("Enveloppe d'urgence - couverture", "Emergency Unblinding Envelope Cover", row$envelope_no, accent = "#b42318")
     .rp_draw_note_box(
-      .rp_bilingual("\u8B66\u793A", "Warning"),
+      .rp_bilingual("Avertissement", "Warning"),
       c(
-        .rp_bilingual("\u4EC5\u9650\u7D27\u6025\u7834\u76F2\u4F7F\u7528", "Emergency unblinding use only"),
-        .rp_bilingual("\u975E\u533B\u5B66\u7D27\u6025\u60C5\u51B5\u8BF7\u52FF\u62C6\u5F00", "Do not open unless medically necessary"),
-        .rp_bilingual("\u4E00\u65E6\u62C6\u5F00\uFF0C\u5373\u89C6\u4E3A\u8BE5\u8BD5\u9A8C\u53C2\u4E0E\u8005\u5DF2\u88AB\u7834\u76F2", "Opening means the participant has been unblinded")
+        .rp_bilingual("R\u00E9serv\u00E9e \u00E0 la lev\u00E9e d'aveugle d'urgence", "Emergency unblinding use only"),
+        .rp_bilingual("Ne pas ouvrir en dehors d'une urgence m\u00E9dicale", "Do not open unless medically necessary"),
+        .rp_bilingual("Toute ouverture vaut lev\u00E9e de l'aveugle pour ce participant", "Opening means the participant has been unblinded")
       ),
       y_top = 0.805,
       height = 0.18,
@@ -297,16 +301,16 @@
       title_cex = 0.66,
       line_gap = 0.024,
       paragraph_gap = 0.003,
-      wrap_width = 90
+      wrap_width = 120
     )
     common_rows <- .rp_envelope_common_rows(row, project_name, protocol_no, sponsor_name, center_col, stratum_display)
     .rp_draw_kv_table(common_rows, y_top = 0.595, row_h = 0.047, accent = "#b42318", value_cex = 0.66, label_cex = 0.47)
     .rp_draw_note_box(
-      .rp_bilingual("\u62C6\u5C01\u8BB0\u5F55\uFF08\u73B0\u573A\u624B\u5199\u586B\u5199\uFF09", "Opening record, handwritten on site"),
+      .rp_bilingual("Ouverture de l'enveloppe (\u00E0 remplir \u00E0 la main sur site)", "Opening record, handwritten on site"),
       c(
-        paste0(.rp_bilingual("\u62C6\u5C01\u539F\u56E0", "Reason for opening"), ": ________________________________"),
-        paste0(.rp_bilingual("\u62C6\u5C01\u4EBA\u7B7E\u540D\u53CA\u65E5\u671F/\u5177\u4F53\u65F6\u95F4", "Opened by/date time"), ": __________________"),
-        paste0(.rp_bilingual("\u89C1\u8BC1\u4EBA\u7B7E\u540D\u53CA\u65E5\u671F/\u5177\u4F53\u65F6\u95F4", "Witness/date time"), ": ________________")
+        paste0(.rp_bilingual("Motif de l'ouverture", "Reason for opening"), ": ________________________________"),
+        paste0(.rp_bilingual("Signature de la personne qui ouvre, date et heure", "Opened by/date time"), ": __________________"),
+        paste0(.rp_bilingual("Signature du t\u00E9moin, date et heure", "Witness/date time"), ": ________________")
       ),
       y_top = 0.285,
       height = 0.16,
@@ -319,14 +323,14 @@
       paragraph_gap = 0.002,
       wrap_width = 94
     )
-    .rp_draw_footer("Emergency envelope cover", row$envelope_no)
+    .rp_draw_footer("Enveloppe d'urgence - couverture", row$envelope_no)
 
-    .rp_page_header("\u5E94\u6025\u7834\u76F2\u4FE1\u5C01\u5185\u9875", "Emergency Unblinding Envelope Insert", row$envelope_no, accent = "#b42318")
+    .rp_page_header("Enveloppe d'urgence - feuillet int\u00E9rieur", "Emergency Unblinding Envelope Insert", row$envelope_no, accent = "#b42318")
     insert_rows <- rbind(
       common_rows,
-      data.frame(label = .rp_bilingual("\u8BD5\u9A8C\u53C2\u4E0E\u8005\u968F\u673A\u53F7", "Participant randomization number"), value = as.character(row$random_no), stringsAsFactors = FALSE),
-      data.frame(label = .rp_bilingual("\u836F\u7269\u7F16\u53F7/\u5E72\u9884\u7F16\u53F7", "Drug/intervention code"), value = as.character(row$drug_code), stringsAsFactors = FALSE),
-      data.frame(label = .rp_bilingual("\u836F\u7269\u5206\u914D/\u5E72\u9884\u63ED\u76F2\u4FE1\u606F", "Treatment/intervention allocation"), value = paste0(row$group_id, " - ", row$intervention_name), stringsAsFactors = FALSE)
+      data.frame(label = .rp_bilingual("Num\u00E9ro de randomisation du participant", "Participant randomization number"), value = as.character(row$random_no), stringsAsFactors = FALSE),
+      data.frame(label = .rp_bilingual("Num\u00E9ro de traitement / d'intervention", "Drug/intervention code"), value = as.character(row$drug_code), stringsAsFactors = FALSE),
+      data.frame(label = .rp_bilingual("Traitement attribu\u00E9", "Treatment/intervention allocation"), value = paste0(row$group_id, " - ", row$intervention_name), stringsAsFactors = FALSE)
     )
     y_after <- .rp_draw_kv_table(insert_rows, y_top = 0.78, row_h = 0.055, accent = "#b42318", value_cex = 0.73)
     note_spec <- .rp_emergency_insert_sensitive_note_spec(y_after)
@@ -344,7 +348,7 @@
       paragraph_gap = note_spec$paragraph_gap,
       wrap_width = note_spec$wrap_width
     )
-    .rp_draw_footer("Emergency envelope insert", row$envelope_no)
+    .rp_draw_footer("Enveloppe d'urgence - feuillet int\u00E9rieur", row$envelope_no)
   }
 }
 

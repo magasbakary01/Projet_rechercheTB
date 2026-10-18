@@ -195,7 +195,8 @@ this value.}
 
 \item{font_family}{Optional font family name forwarded to the PDF envelope
 writers. Default: \code{NULL}. When \code{NULL}, the PDF helpers automatically choose
-a platform-appropriate Chinese font candidate before opening the PDF device.}
+a platform-appropriate Latin font (Arial, Helvetica or sans) able to render
+French accents before opening the PDF device.}
 
 \item{encrypt_sensitive_outputs}{Logical; currently a boundary-validation flag
 only. Default: \code{FALSE}. When \code{TRUE}, \code{password} must be a non-empty string,

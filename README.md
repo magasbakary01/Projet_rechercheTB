@@ -11,7 +11,8 @@ randomisation reproductibles (simple, par blocs, stratifiée, minimisation), des
 d'intervention, des enveloppes de randomisation et de levée d'aveugle en PDF, ainsi qu'un
 rapport Excel d'audit. Il propose aussi une interface Shiny locale.
 
-Modification locale : `tests/testthat/test-ui.R` utilisait un chemin absolu propre à
+Modifications locales : interface, enveloppes PDF et rapport Excel traduits en français
+(police PDF latine au lieu de la police chinoise) ; `tests/testthat/test-ui.R` utilisait un chemin absolu propre à
 l'auteur (`D:/tmpProject/...`) ; il est remplacé par `test_path()`.
 
 ### Installation et lancement (R >= 4.1)

@@ -489,7 +489,8 @@
 #'   this value.
 #' @param font_family Optional font family name forwarded to the PDF envelope
 #'   writers. Default: `NULL`. When `NULL`, the PDF helpers automatically choose
-#'   a platform-appropriate Chinese font candidate before opening the PDF device.
+#'   a platform-appropriate Latin font (Arial, Helvetica or sans) able to render
+#'   French accents before opening the PDF device.
 #' @param encrypt_sensitive_outputs Logical; currently a boundary-validation flag
 #'   only. Default: `FALSE`. When `TRUE`, `password` must be a non-empty string,
 #'   but this function does not itself encrypt output files.

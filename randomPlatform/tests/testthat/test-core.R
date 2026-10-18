@@ -448,7 +448,7 @@ test_that("minimization errors on duplicate named weights", {
   )
 })
 
-test_that("envelope rows use 申办单位 label", {
+test_that("envelope rows use promoteur label", {
   row <- data.frame(envelope_no = "No. 001", stringsAsFactors = FALSE)
   rows <- .rp_envelope_common_rows(
     row = row,
@@ -459,8 +459,8 @@ test_that("envelope rows use 申办单位 label", {
     stratum_display = NULL
   )
 
-  expect_true(any(grepl("申办单位名称", rows$label, fixed = TRUE)))
-  expect_false(any(grepl("申办方名称", rows$label, fixed = TRUE)))
+  expect_true(any(grepl("Nom du promoteur", rows$label, fixed = TRUE)))
+  expect_false(any(grepl("Nom du sponsor", rows$label, fixed = TRUE)))
 })
 
 test_that("reproducibility script embeds package functions and runs standalone", {

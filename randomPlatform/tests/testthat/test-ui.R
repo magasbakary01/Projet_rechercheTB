@@ -91,17 +91,17 @@ test_that("standard UI no longer exposes minimization module", {
   expect_false(grepl("minimization", html, fixed = TRUE))
 })
 
-test_that("UI uses 申办单位 wording", {
+test_that("UI uses promoteur wording", {
   html <- paste(as.character(rp_app_ui()), collapse = "\n")
-  expect_true(grepl("申办单位名称", html, fixed = TRUE))
-  expect_false(grepl("申办方名称", html, fixed = TRUE))
+  expect_true(grepl("Nom du promoteur", html, fixed = TRUE))
+  expect_false(grepl("Nom du sponsor", html, fixed = TRUE))
 })
 
 test_that("UI does not claim outputs are encrypted", {
   html <- paste(as.character(rp_app_ui()), collapse = "\n")
-  expect_true(grepl("敏感输出密码必填检查（当前不加密文件）", html, fixed = TRUE))
-  expect_true(grepl("密码（当前仅校验是否填写）", html, fixed = TRUE))
-  expect_false(grepl("启用敏感输出文件加密", html, fixed = TRUE))
+  expect_true(grepl("Exiger un mot de passe pour les fichiers sensibles (aucun chiffrement des fichiers actuellement)", html, fixed = TRUE))
+  expect_true(grepl("Mot de passe (seule sa saisie est v\u00E9rifi\u00E9e)", html, fixed = TRUE))
+  expect_false(grepl("Activer le chiffrement des fichiers sensibles", html, fixed = TRUE))
 })
 
 test_that("UI verification code no longer compares the table to itself", {

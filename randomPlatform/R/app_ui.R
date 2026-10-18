@@ -59,13 +59,13 @@ rp_app_ui <- function() {
           shiny::tags$span(class = "rp-brand-mark", "RP"),
           shiny::tags$div(
             shiny::tags$h1("randomPlatform"),
-            shiny::tags$p("\u4E34\u5E8A\u7814\u7A76\u968F\u673A\u5316\u7BA1\u7406\u7CFB\u7EDF")
+            shiny::tags$p("Gestion de la randomisation en recherche clinique")
           ),
           shiny::tags$span(class = "rp-version-badge", "V1.0")
         ),
         shiny::tags$div(
           class = "rp-topbar-meta",
-          shiny::tags$span("Local only"),
+          shiny::tags$span("Local uniquement"),
           shiny::tags$strong("127.0.0.1")
         )
       ),
@@ -79,22 +79,22 @@ rp_app_ui <- function() {
               class = "rp-nav-host",
               shiny::tags$ul(
                 class = "nav nav-pills nav-stacked rp-nav-list",
-                rp_nav_link("project", "\u9879\u76EE\u4FE1\u606F", active = TRUE),
-                rp_nav_link("interventions", "\u5E72\u9884\u7EC4\u8BBE\u7F6E"),
-                rp_nav_link("randomization", "\u968F\u673A\u5316\u8BBE\u8BA1"),
-                rp_nav_link("outputs", "\u8F93\u51FA\u8BBE\u7F6E"),
-                rp_nav_link("results", "\u751F\u6210\u4E0E\u9884\u89C8"),
-                rp_nav_link("downloads", "\u6587\u4EF6\u4E0B\u8F7D"),
-                rp_nav_link("audit", "\u5BA1\u8BA1\u4E0E\u590D\u73B0")
+                rp_nav_link("project", "Informations sur l'\u00E9tude", active = TRUE),
+                rp_nav_link("interventions", "Bras de traitement"),
+                rp_nav_link("randomization", "Plan de randomisation"),
+                rp_nav_link("outputs", "Fichiers de sortie"),
+                rp_nav_link("results", "G\u00E9n\u00E9ration et aper\u00E7u"),
+                rp_nav_link("downloads", "T\u00E9l\u00E9chargements"),
+                rp_nav_link("audit", "Audit et reproductibilit\u00E9")
               )
             ),
             shiny::tags$div(
               class = "rp-execute-panel",
-              shiny::actionButton("generate", "\u6267\u884C\u968F\u673A\u5316", class = "btn-primary btn-lg rp-execute-button"),
-              shiny::tags$p("\u6309\u5F53\u524D\u9875\u9762\u53C2\u6570\u751F\u6210\u968F\u673A\u5316\u7ED3\u679C\u3002"),
+              shiny::actionButton("generate", "Lancer la randomisation", class = "btn-primary btn-lg rp-execute-button"),
+              shiny::tags$p("G\u00E9n\u00E8re la randomisation \u00E0 partir des param\u00E8tres saisis."),
               shiny::tags$div(
                 class = "rp-envelope-sequence-warning",
-                "\u6CE8\u610F:\u7531\u8BE5\u7CFB\u7EDF\u751F\u6210\u5236\u4F5C\u7684\u968F\u673A\u4FE1\u5C01\u987B\u4E25\u683C\u6309\u7F16\u53F7\u4ECE\u5C0F\u5230\u5927\u7684\u987A\u5E8F\u3001\u4F9D\u5165\u7EC4\u5148\u540E\u4F9D\u6B21\u62C6\u5C01\u3002"
+                "Attention : les enveloppes de randomisation produites par ce syst\u00E8me doivent \u00EAtre ouvertes strictement dans l'ordre croissant des num\u00E9ros, selon l'ordre d'inclusion des participants."
               )
             )
           ),
@@ -114,12 +114,12 @@ rp_app_ui <- function() {
         class = "rp-footer",
         shiny::tags$div(
           class = "rp-footer-brand",
-          shiny::tags$strong("\u4E0A\u6D77\u4E2D\u533B\u836F\u5927\u5B66\u9644\u5C5E\u9F99\u534E\u533B\u9662\u4E34\u5E8A\u7814\u7A76\u4E2D\u5FC3")
+          shiny::tags$strong("Centre de recherche clinique, h\u00F4pital Longhua, Universit\u00E9 de m\u00E9decine traditionnelle chinoise de Shanghai")
         ),
         shiny::tags$div(
           class = "rp-footer-links",
-          shiny::tags$a(href = "mailto:yangpluszhu@sina.com", "\u8054\u7CFB\u90AE\u7BB1\uFF1Ayangpluszhu@sina.com"),
-          shiny::tags$a(href = "https://github.com/yangpluszhu/randomPlatform", target = "_blank", rel = "noopener noreferrer", "\u9879\u76EE\u5730\u5740\uFF1Ahttps://github.com/yangpluszhu/randomPlatform")
+          shiny::tags$a(href = "mailto:yangpluszhu@sina.com", "Contact : yangpluszhu@sina.com"),
+          shiny::tags$a(href = "https://github.com/yangpluszhu/randomPlatform", target = "_blank", rel = "noopener noreferrer", "D\u00E9p\u00F4t du projet : https://github.com/yangpluszhu/randomPlatform")
         )
       )
     )
@@ -174,7 +174,7 @@ rp_stat_line <- function(label, value) {
   shiny::tags$div(
     class = "rp-stat-line",
     shiny::tags$dt(label),
-    shiny::tags$dd(if (is.null(value) || length(value) == 0 || !nzchar(as.character(value)[1])) "\u672A\u8BBE\u7F6E" else as.character(value)[1])
+    shiny::tags$dd(if (is.null(value) || length(value) == 0 || !nzchar(as.character(value)[1])) "Non renseign\u00E9" else as.character(value)[1])
   )
 }
 

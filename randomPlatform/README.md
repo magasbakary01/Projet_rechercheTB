@@ -187,7 +187,7 @@ The app starts at `http://127.0.0.1:3838` and provides 8 panels:
 ## System Requirements
 
 - R >= 4.1.0
-- For PDF envelope generation: a system with CJK font support (Windows: Microsoft YaHei / SimHei; macOS: PingFang SC; Linux: Noto Sans CJK SC)
+- For PDF envelope generation: a standard Latin font with accented characters (Windows: Arial; macOS: Helvetica; Linux: any fontconfig "sans" font). The interface and envelopes are in French.
 
 ## License
 
